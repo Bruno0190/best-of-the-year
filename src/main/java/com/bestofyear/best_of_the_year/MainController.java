@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 //Importa Model → un oggetto che ci permette di passare dati (tipo variabili) dal controller alla pagina HTML
 import org.springframework.ui.Model;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 
@@ -33,13 +36,62 @@ public class MainController {
         /* Qui stiamo dicendo:
         "Aggiungi al Model una variabile chiamata 'name' con valore 'Bruno'"
         Questa variabile verrà usata nell'HTML (Thymeleaf) con ${name} */
-        model.addAttribute("name", "Bruno");
+        model.addAttribute("name", "PEPPE");
 
         /*Restituiamo la "view" chiamata index.html (che si trova nella cartella templates)
         Spring lo interpreterà come: "carica il file templates/index.html"*/
         return "index";
 
     }
+
+    public List<Movie> getBestMovies(){
+        List<Movie> bestMovies = new ArrayList<>();
+        Movie matrix = new Movie(1, "The Matrix");
+        bestMovies.add(matrix);
+        Movie inception = new Movie(2, "Inception");
+        bestMovies.add(inception);
+        Movie titanic = new Movie(3, "Titanic");
+        bestMovies.add(titanic);
+
+        return bestMovies;
+
+    }
+
+    public List<Song> getBestSongs(){
+        List<Song> bestSongs = new ArrayList<>();
+        Song acquaAzzurra = new Song(1, "Acqua azzurra acqua chiara");
+        bestSongs.add(acquaAzzurra);
+        Song telefonando = new Song(2, "Se telefonando");
+        bestSongs.add(telefonando);
+        Song bellissima = new Song(3, "Bellissima");
+        bestSongs.add(bellissima);
+
+        return bestSongs;
+    }
     
+    public String titoliFilm(Model model){
+
+        List<Movie> bestMovies = getBestMovies();
+
+        String titoli = bestMovies.stream()
+                        .map(Movie::getTitle)
+                        .collect(Collectors.joining(","));
+        model.addAttribute("movieItems", titoli);
+
+        return "index";
+
+    }
     
+    public String titoliCanzoni(Model model){
+
+        List<Song> bestSongs = getBestSongs();
+
+        String titoli = bestSongs.stream()
+                        .map(Song::getTitle)
+                        .collect(Collectors.joining(","));
+        model.addAttribute("songItems", titoli);
+
+        return "index";
+
+    }
 }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://wwww.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8">
@@ -10,6 +10,16 @@
 
     <div>
         <h1 th:text="'Best of the year by ' + ${name}"></h1>
+    </div>
+    
+    <div th:if="${movieItems}">
+        <h2>Best Movies:</h2>
+        <p th:text="${movieItems}"></p>
+    </div>
+
+    <div th:if="${songItems}">
+        <h2>Best Songs:</h2>
+        <p th:text="${songItems}"></p>
     </div>
 
     
