@@ -14,6 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 //Importa @RequestMapping → permette di definire un "prefisso" per tutte le rotte della classe
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 //Importa Model → un oggetto che ci permette di passare dati (tipo variabili) dal controller alla pagina HTML
 import org.springframework.ui.Model;
 import java.util.ArrayList;
@@ -69,29 +70,120 @@ public class MainController {
         return bestSongs;
     }
     
-    public String titoliFilm(Model model){
+    /* Questo metodo costruisce la lista dei titoli dei film
+    e la passa alla view index.html */
+    public String titoliFilm(Model model) {
 
+        /*  getBestMovies() restituisce una List<Movie>,
+        su cui chiamiamo .stream() per lavorare "flusso per flusso" sugli elementi.
+        */
         List<Movie> bestMovies = getBestMovies();
 
+        /*  
+        * bestMovies.stream():
+        - trasforma la lista in una sequenza di oggetti Movie
+        .map(Movie::getTitle):
+        - per ogni Movie, estrae il titolo (String)
+        - Movie::getTitle è la "method reference":
+        un modo compatto per dire “x -> x.getTitle()”
+        .collect(Collectors.joining(",")):
+        - raccoglie (collect) tutti i titoli in una Singola Stringa
+        - li “join-a” inserendo una virgola tra un titolo e l’altro
+        */
         String titoli = bestMovies.stream()
                         .map(Movie::getTitle)
                         .collect(Collectors.joining(","));
+
+        /*Aggiungiamo al Model:
+        - nome dell'attributo: "movieItems"
+        - valore: la stringa dei titoli uniti dalle virgole
+        Thymeleaf potrà accedervi come ${movieItems}
+        */
         model.addAttribute("movieItems", titoli);
 
+        /* Ritorno "index":  
+        indica a Spring di caricare index.html dalla cartella templates,
+        dove lo user visualizzerà i dati passati.
+        */
         return "index";
-
     }
-    
-    public String titoliCanzoni(Model model){
 
+    
+    /* Questo metodo fa esattamente la stessa cosa, ma usando la lista di canzoni */
+    public String titoliCanzoni(Model model) {
+
+        /*getBestSongs() ritorna una List<Song>;
+        .stream(), .map(), .collect() funzionano allo stesso modo
+        */
         List<Song> bestSongs = getBestSongs();
 
         String titoli = bestSongs.stream()
                         .map(Song::getTitle)
                         .collect(Collectors.joining(","));
+
+        /*Qui usiamo un nome diverso ("songItems"), così Thymeleaf
+        potrà mostrarle con ${songItems}
+        */
         model.addAttribute("songItems", titoli);
 
-        return "index";
-
+        return "index";  // visualizza di nuovo index.html
     }
+
+
+    /*Metodo che risponde a GET /movies/{id} (es. /movies/2)
+    Qui usiamo @PathVariable per leggere il valore dal path
+    */
+    @GetMapping("/movies/{id}")
+    public String movieById(@PathVariable int id, Model model) {
+
+        /*getBestMovies().stream():
+        - creiamo lo stream di Movie
+        .filter(m -> m.getId() == id):
+        - manteniamo solo i Movie il cui id corrisponde a quello richiesto
+        - "m -> m.getId() == id" è un'espressione lambda: m è ogni Movie
+        .findFirst():
+        - prendi il primo elemento che soddisfa il filtro (ce n'è al massimo uno)
+        .orElse(null):
+        - se non lo troviamo, ritorniamo null
+        */
+        Movie movie = getBestMovies().stream()
+            .filter(m -> m.getId() == id)
+            .findFirst()
+            .orElse(null);
+
+        /*Se abbiamo trovato un film, passiamo il suo titolo come "itemTitle"
+        altrimenti un messaggio di errore.
+        */
+        if (movie != null) {
+            model.addAttribute("itemTitle", movie.getTitle());
+        } else {
+            model.addAttribute("itemTitle", "Film non trovato");
+        }
+
+        /*Restituiamo la view detail.html (va creata in src/main/resources/templates)
+        dove Thymeleaf mostrerà ${itemTitle}
+        */
+        return "detail";
+    }
+
+
+    /*Metodo per GET /songs/{id}, uguale al precedente ma per le canzoni
+    */
+    @GetMapping("/songs/{id}")
+    public String songById(@PathVariable int id, Model model) {
+
+        Song song = getBestSongs().stream()
+            .filter(s -> s.getId() == id)
+            .findFirst()
+            .orElse(null);
+
+        if (song != null) {
+            model.addAttribute("itemTitle", song.getTitle());
+        } else {
+            model.addAttribute("itemTitle", "Canzone non trovata");
+        }
+
+        return "detail";
+    }
+
 }
